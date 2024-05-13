@@ -5,24 +5,22 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
-    
-    
     @IBOutlet weak var buttonNo: UIButton!
     @IBOutlet weak var buttonYes: UIButton!
     
-    struct QuizQuestion {
+    private struct QuizQuestion {
         let image: String
         let text: String
         let correctAnswer: Bool
     }
     
-    struct QuizStepViewModel {
+    private struct QuizStepViewModel {
         let image: UIImage
         let question: String
         let questionNumber: String
     }
     
-    struct QuizResultsViewModel {
+    private struct QuizResultsViewModel {
         let title: String
         let text: String
         let buttonText: String
@@ -87,7 +85,7 @@ final class MovieQuizViewController: UIViewController {
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
-        enableButtons()
+        changeStateButtons(isEnabled: true)
     }
     
     private func show(quiz result: QuizResultsViewModel) {
@@ -98,14 +96,13 @@ final class MovieQuizViewController: UIViewController {
         
         let action = UIAlertAction(
             title: result.buttonText,
-            style: .default){ [self]_ in
+            style: .default) { _ in
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
                 
-                currentQuestionIndex = 0
-                correctAnswers = 0
-                
-                if let firstQuestion = questions.first {
-                    let viewModel = convert(model: firstQuestion)
-                    show(quiz: viewModel)
+                if let firstQuestion = self.questions.first {
+                    let viewModel = self.convert(model: firstQuestion)
+                    self.show(quiz: viewModel)
                 }
             }
         alert.addAction(action)
@@ -139,22 +136,16 @@ final class MovieQuizViewController: UIViewController {
             
             let nextQuestion = questions[currentQuestionIndex]
             let viewModel = convert(model: nextQuestion)
+            
             show(quiz: viewModel)
         }
     }
     
-    private func disableButtons() {
-        buttonNo.isEnabled = false
-        buttonYes.isEnabled = false
-        buttonNo.backgroundColor = UIColor.gray
-        buttonYes.backgroundColor = UIColor.gray
-    }
-    
-    private func enableButtons() {
-        buttonNo.isEnabled = true
-        buttonYes.isEnabled = true
-        buttonNo.backgroundColor = UIColor.white
-        buttonYes.backgroundColor = UIColor.white
+    private func changeStateButtons(isEnabled: Bool) {
+        buttonNo.isEnabled = isEnabled
+        buttonYes.isEnabled = isEnabled
+        buttonNo.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
+        buttonYes.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
     }
     
     // MARK: - Lifecycle
@@ -165,6 +156,9 @@ final class MovieQuizViewController: UIViewController {
         textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
         buttonNo.isExclusiveTouch = true
         buttonYes.isExclusiveTouch = true
+        imageView.layer.cornerRadius = 20
+        buttonNo.layer.cornerRadius = 15
+        buttonYes.layer.cornerRadius = 15
         
         if let firstQuestion = questions.first {
             let viewModel = convert(model: firstQuestion)
@@ -173,16 +167,15 @@ final class MovieQuizViewController: UIViewController {
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
-        disableButtons()
+        changeStateButtons(isEnabled: false)
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = false
         
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-        
-        
     }
+    
     @IBAction private func yesButtonClicked(_ sender: Any) {
-        disableButtons()
+        changeStateButtons(isEnabled: false)
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
         
