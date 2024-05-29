@@ -49,7 +49,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderColor = isCorrect ? UIColor.ypColorGreen.cgColor : UIColor.ypColorRed.cgColor
         imageView.layer.cornerRadius = 20
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             imageView.layer.borderColor = UIColor.clear.cgColor
             showNextQuestionOrResults()
