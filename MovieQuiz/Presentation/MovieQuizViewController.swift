@@ -1,7 +1,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
-    
+    // MARK: - IB Outlets
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
@@ -17,6 +17,26 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
     private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticServiceProtocol?
+    
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        statisticService = StatisticServiceImplementation()
+        alertPresenter.delegate = self
+        
+        let questionFactory = QuestionFactory()
+        questionFactory.setup(delegate: self)
+        self.questionFactory = questionFactory
+        questionFactory.requestNextQuestion()
+        
+        counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
+        textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
+        buttonNo.isExclusiveTouch = true
+        buttonYes.isExclusiveTouch = true
+        imageView.layer.cornerRadius = 20
+        buttonNo.layer.cornerRadius = 15
+        buttonYes.layer.cornerRadius = 15
+    }
     
     // MARK: - Private functions
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -82,7 +102,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             statisticService?.store(payload: currentResult)
             
             let model = convertAlertData(StatisticServiceImplementation())
-            alertPresenter.alertPresent(alertModel: model, onView: self)
+            alertPresenter.alertPresent(alertModel: model)
         } else {
             currentQuestionIndex += 1
             self.questionFactory.requestNextQuestion()
@@ -96,29 +116,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         buttonYes.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
     }
     
-    // MARK: - Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        statisticService = StatisticServiceImplementation()
-        alertPresenter.delegate = self
-        
-        let questionFactory = QuestionFactory()
-        questionFactory.setup(delegate: self)
-        self.questionFactory = questionFactory
-        questionFactory.requestNextQuestion()
-        
-        counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
-        textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
-        buttonNo.isExclusiveTouch = true
-        buttonYes.isExclusiveTouch = true
-        imageView.layer.cornerRadius = 20
-        buttonNo.layer.cornerRadius = 15
-        buttonYes.layer.cornerRadius = 15
-    }
-    
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
+        guard let question else {
             return
         }
         
@@ -132,13 +132,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     //MARK: - AlertPresenterDelegate
     
-    internal func startNewGame() {
+    func startNewGame() {
         correctAnswers = 0
         currentQuestionIndex = 0
         questionFactory.requestNextQuestion()
     }
     
-    // MARK: - Actions
+    func sendAlert(alert: UIAlertController) {
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    
+    // MARK: - IB Actions
     @IBAction private func noButtonClicked(_ sender: Any) {
         changeStateButtons(isEnabled: false)
         guard let currentQuestion = currentQuestion else {

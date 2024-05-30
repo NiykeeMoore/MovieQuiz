@@ -1,10 +1,10 @@
 import UIKit
 
 class AlertPresenter: AlertPresenterProtocol {
-
+    
     weak var delegate: AlertPresenterDelegate?
     
-    func alertPresent(alertModel: AlertModel, onView: UIViewController) {
+    func alertPresent(alertModel: AlertModel) {
         let alert = UIAlertController(
             title: alertModel.title,
             message: alertModel.message,
@@ -18,7 +18,7 @@ class AlertPresenter: AlertPresenterProtocol {
         
         alert.addAction(action)
         DispatchQueue.main.async {
-            onView.present(alert, animated: true, completion: nil)
+            self.delegate?.sendAlert(alert: alert)
         }
     }
 }
