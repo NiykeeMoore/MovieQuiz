@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
     
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak private var textLabel: UILabel!
@@ -11,10 +11,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
     
+    private lazy var alertPresenter = AlertPresenter()
+    
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
     private var currentQuestion: QuizQuestion?
-    private var statisticService: StatisticServiceImplementation?
+    private var statisticService: StatisticServiceProtocol?
     
     // MARK: - Private functions
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -33,12 +35,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         textLabel.text = step.question
         changeStateButtons(isEnabled: true)
     }
-    
-    private lazy var alertPresenter: AlertPresenter = {
-        let presenter = AlertPresenter()
-        presenter.viewController = self
-        return presenter
-    }()
     
     private func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
@@ -78,11 +74,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             buttonText: "Сыграть еще раз")
         
     }
-    internal func startNewGame() {
-        currentQuestionIndex = 0
-        correctAnswers = 0
-        questionFactory.requestNextQuestion()
-    }
     
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
@@ -90,9 +81,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             let currentResult = GameResult(correct: correctAnswers, total: questionsAmount, date: Date())
             statisticService?.store(payload: currentResult)
             
-            let model = convertAlertData(statisticService)
-            alertPresenter.alertPresent(alertModel: model)
-            
+            let model = convertAlertData(StatisticServiceImplementation())
+            alertPresenter.alertPresent(alertModel: model, onView: self)
         } else {
             currentQuestionIndex += 1
             self.questionFactory.requestNextQuestion()
@@ -110,6 +100,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         statisticService = StatisticServiceImplementation()
+        alertPresenter.delegate = self
         
         let questionFactory = QuestionFactory()
         questionFactory.setup(delegate: self)
@@ -137,6 +128,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
+    }
+    
+    //MARK: - AlertPresenterDelegate
+    
+    internal func startNewGame() {
+        correctAnswers = 0
+        currentQuestionIndex = 0
+        questionFactory.requestNextQuestion()
     }
     
     // MARK: - Actions

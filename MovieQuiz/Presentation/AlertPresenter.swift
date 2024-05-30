@@ -1,9 +1,10 @@
 import UIKit
 
-class AlertPresenter {
-    weak var viewController: UIViewController?
+class AlertPresenter: AlertPresenterProtocol {
+
+    weak var delegate: AlertPresenterDelegate?
     
-    func alertPresent(alertModel: AlertModel) {
+    func alertPresent(alertModel: AlertModel, onView: UIViewController) {
         let alert = UIAlertController(
             title: alertModel.title,
             message: alertModel.message,
@@ -11,14 +12,13 @@ class AlertPresenter {
         
         let action = UIAlertAction(
             title: alertModel.buttonText,
-            style: .default) { [weak self] _ in
-                guard let viewController = self?.viewController as? MovieQuizViewController else { return }
-                viewController.startNewGame()
+            style: .default) { _ in
+                self.delegate?.startNewGame()
             }
         
         alert.addAction(action)
         DispatchQueue.main.async {
-            self.viewController?.present(alert, animated: true, completion: nil)
+            onView.present(alert, animated: true, completion: nil)
         }
     }
 }

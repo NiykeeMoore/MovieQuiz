@@ -59,8 +59,7 @@ final class StatisticServiceImplementation: StatisticServiceProtocol {
     
     internal var totalAccuracy: Double {
         guard total > 0 else { return 0.0 }
-        let totalQuestions = total * gamesCount
-        return (Double(correct) / Double(totalQuestions)) * 100
+        return Double(correct) / Double(total) * 100
     }
     
     func store(payload gameResult: GameResult) {
@@ -69,7 +68,6 @@ final class StatisticServiceImplementation: StatisticServiceProtocol {
         self.gamesCount += 1
         
         if gameResult.isBetterRecord(self.bestGame) {
-            print(bestGame, gameResult)
             self.bestGame = gameResult
         }
     }
