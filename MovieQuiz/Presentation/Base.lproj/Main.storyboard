@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23077.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_72" orientation="portrait" appearance="dark"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22684"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23068.1"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="Stack View standard spacing" minToolsVersion="9.0"/>
@@ -114,17 +114,23 @@
                                     <constraint firstAttribute="trailing" secondItem="eHH-gS-b8c" secondAttribute="trailing" id="wZc-vH-A1f"/>
                                 </constraints>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="f8T-tb-Irp">
+                                <rect key="frame" x="205" y="456" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="KJC-MZ-0ZW" secondAttribute="trailing" constant="20" id="2rg-e1-j8u"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="KJC-MZ-0ZW" secondAttribute="bottom" id="OYV-QO-3hY"/>
+                            <constraint firstItem="f8T-tb-Irp" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="TH4-Ty-fhU"/>
                             <constraint firstItem="KJC-MZ-0ZW" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="lBx-MO-tjL"/>
                             <constraint firstItem="KJC-MZ-0ZW" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="mi1-4H-BlI"/>
+                            <constraint firstItem="f8T-tb-Irp" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="p0g-87-xuA"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="f8T-tb-Irp" id="Au6-4Z-Dr4"/>
                         <outlet property="buttonNo" destination="j4h-xa-HhE" id="ULw-YR-ZYr"/>
                         <outlet property="buttonYes" destination="7zf-2C-o3C" id="D6C-R8-Dmb"/>
                         <outlet property="counterLabel" destination="uNv-vd-lfc" id="hFW-ue-5Zh"/>
@@ -134,7 +140,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-55.072463768115945" y="55.580357142857139"/>
+            <point key="canvasLocation" x="-55.813953488372093" y="55.36480686695279"/>
         </scene>
     </scenes>
     <resources>

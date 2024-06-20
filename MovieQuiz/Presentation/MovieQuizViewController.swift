@@ -7,6 +7,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak var buttonNo: UIButton!
     @IBOutlet weak var buttonYes: UIButton!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
@@ -14,7 +15,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private lazy var alertPresenter = AlertPresenter()
     
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol? = QuestionFactory(moviesLoader: MoviesLoader())
     private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticServiceProtocol?
     
@@ -24,10 +25,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         statisticService = StatisticServiceImplementation()
         alertPresenter.delegate = self
         
-        let questionFactory = QuestionFactory()
-        questionFactory.setup(delegate: self)
-        self.questionFactory = questionFactory
-        questionFactory.requestNextQuestion()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        showLoadingIndicator()
+        questionFactory?.loadData()
         
         counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
         textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
@@ -36,17 +36,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         imageView.layer.cornerRadius = 20
         buttonNo.layer.cornerRadius = 15
         buttonYes.layer.cornerRadius = 15
+        
     }
     
     // MARK: - Private functions
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        
-        let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+        return QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        
-        return questionStep
     }
     
     private func show(quiz step: QuizStepViewModel) {
@@ -105,7 +103,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             alertPresenter.alertPresent(alertModel: model)
         } else {
             currentQuestionIndex += 1
-            self.questionFactory.requestNextQuestion()
+            self.questionFactory?.requestNextQuestion()
         }
     }
     
@@ -114,6 +112,25 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         buttonYes.isEnabled = isEnabled
         buttonNo.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
         buttonYes.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.color = .black // серый индикатор на сером фоне imageview не видно
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+    }
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз")
+        
+        alertPresenter.alertPresent(alertModel: model)
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -130,12 +147,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         }
     }
     
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
     //MARK: - AlertPresenterDelegate
     
     func startNewGame() {
         correctAnswers = 0
         currentQuestionIndex = 0
-        questionFactory.requestNextQuestion()
+        questionFactory?.requestNextQuestion()
     }
     
     func sendAlert(alert: UIAlertController) {
