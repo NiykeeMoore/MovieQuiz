@@ -1,10 +1,11 @@
 import UIKit
 
-final class MovieQuizPresenter: QuestionFactoryDelegate {
+final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
     private let statisticService: StatisticServiceProtocol!
     private var questionFactory: QuestionFactoryProtocol?
-    weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewController?
     private var currentQuestion: QuizQuestion?
+    lazy var alertPresenter = AlertPresenter()
     
     private var currentQuestionIndex: Int = 0
     let questionsAmount: Int = 10
@@ -18,6 +19,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
         viewController.showLoadingIndicator()
+        
+        alertPresenter.delegate = self
     }
     
     func didAnswerIsCorrect(isCorrectAnswer: Bool) {
@@ -69,8 +72,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             
             statisticService?.store(payload: currentResult)
             
-            guard let model = viewController?.convertAlertData(StatisticServiceImplementation()) else { return }
-            viewController?.alertPresenter.alertPresent(alertModel: model)
+            let model = convertAlertData(StatisticServiceImplementation())
+            alertPresenter.alertPresent(alertModel: model)
         } else {
             self.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
@@ -98,6 +101,46 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.showNetworkError(message: error.localizedDescription)
     }
     
+    func yesButtonClicked() {
+        didAnswer(isYes: true)
+    }
+    
+    func noButtonClicked() {
+        didAnswer(isYes: false)
+    }
+    
+    //MARK: - AlertPresenterDelegate
+    func startNewGame() {
+        restartGame()
+    }
+    
+    func sendAlert(alert: UIAlertController) {
+        viewController?.present(alert, animated: true, completion: nil)
+    }
+    
+    //MARK: - Private func
+    private func convertAlertData(_ model: StatisticServiceImplementation?) -> AlertModel {
+        guard let bestGame = model?.bestGame else {
+            return AlertModel(title: "Ошибка", message: "Загрузка данных для алерта статистики", buttonText: "В ад")
+        }
+        
+        let gamesCount = model?.gamesCount ?? 0
+        let gamesAccuracy = model?.totalAccuracy ?? 0.0
+        
+        let recordCorrect = bestGame.correct
+        let recordDate = bestGame.date
+        
+        return AlertModel(
+            title: "Этот раунд окончен!",
+            message: """
+            Ваш результат: \(correctAnswers) / \(questionsAmount)
+            Количество сыгранных квизов: \(gamesCount)
+            Рекорд: \(recordCorrect) / \(questionsAmount) (\(recordDate.dateTimeString))
+            Средняя точность: \(String(format: "%.2f", gamesAccuracy))%
+            """,
+            buttonText: "Сыграть еще раз")
+    }
+    
     private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         
@@ -114,13 +157,5 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             guard let self = self else { return }
             showNextQuestionOrResults()
         }
-    }
-    
-    func yesButtonClicked() {
-        didAnswer(isYes: true)
-    }
-    
-    func noButtonClicked() {
-        didAnswer(isYes: false)
     }
 }

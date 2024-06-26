@@ -1,74 +1,34 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     // MARK: - IB Outlets
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
-    @IBOutlet weak var buttonNo: UIButton!
-    @IBOutlet weak var buttonYes: UIButton!
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    
-    lazy var alertPresenter = AlertPresenter()
+    @IBOutlet weak private var buttonNo: UIButton!
+    @IBOutlet weak private var buttonYes: UIButton!
+    @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private var quizPresenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupView()
         
         quizPresenter = MovieQuizPresenter(viewController: self)
         
-        alertPresenter.delegate = self
+        activityIndicator.hidesWhenStopped = true
         showLoadingIndicator()
-        
-        counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
-        textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
-        buttonNo.isExclusiveTouch = true
-        buttonYes.isExclusiveTouch = true
-        imageView.layer.cornerRadius = 20
-        buttonNo.layer.cornerRadius = 15
-        buttonYes.layer.cornerRadius = 15
-        
     }
     
-    // MARK: - Private functions
+    // MARK: - Public Functions
     func show(quiz step: QuizStepViewModel) {
         imageView.layer.borderColor = UIColor.clear.cgColor
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
         changeStateButtons(isEnabled: true)
-    }
-    
-    func convertAlertData(_ model: StatisticServiceImplementation?) -> AlertModel {
-        guard let bestGame = model?.bestGame else {
-            return AlertModel(title: "Ошибка", message: "Загрузка данных для алерта статистики", buttonText: "В ад")
-        }
-        
-        let gamesCount = model?.gamesCount ?? 0
-        let gamesAccuracy = model?.totalAccuracy ?? 0.0
-        
-        let recordCorrect = bestGame.correct
-        let recordDate = bestGame.date
-        
-        return AlertModel(
-            title: "Этот раунд окончен!",
-            message: """
-            Ваш результат: \(quizPresenter.correctAnswers) / \(quizPresenter.questionsAmount)
-            Количество сыгранных квизов: \(gamesCount)
-            Рекорд: \(recordCorrect) / \(quizPresenter.questionsAmount) (\(recordDate.dateTimeString))
-            Средняя точность: \(String(format: "%.2f", gamesAccuracy))%
-            """,
-            buttonText: "Сыграть еще раз")
-        
-    }
-    
-    private func changeStateButtons(isEnabled: Bool) {
-        buttonNo.isEnabled = isEnabled
-        buttonYes.isEnabled = isEnabled
-        buttonNo.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
-        buttonYes.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
     }
     
     func highlightImageBorder(isCorrectAnswer: Bool) {
@@ -79,14 +39,14 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     }
     
     func showLoadingIndicator() {
-        activityIndicator.isHidden = false
         activityIndicator.color = .black // серый индикатор на сером фоне imageview не видно
         activityIndicator.startAnimating()
     }
     
     func hideLoadingIndicator() {
-        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
     }
+    
     func showNetworkError(message: String) {
         hideLoadingIndicator()
         
@@ -94,19 +54,27 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
                                message: message,
                                buttonText: "Попробовать еще раз")
         
-        alertPresenter.alertPresent(alertModel: model)
+        quizPresenter.alertPresenter.alertPresent(alertModel: model)
     }
     
-    //MARK: - AlertPresenterDelegate
+    // MARK: - Private functions
     
-    func startNewGame() {
-        quizPresenter?.restartGame()
+    private func setupView() {
+        counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
+        textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
+        buttonNo.isExclusiveTouch = true
+        buttonYes.isExclusiveTouch = true
+        imageView.layer.cornerRadius = 20
+        buttonNo.layer.cornerRadius = 15
+        buttonYes.layer.cornerRadius = 15
     }
     
-    func sendAlert(alert: UIAlertController) {
-        self.present(alert, animated: true, completion: nil)
+    private func changeStateButtons(isEnabled: Bool) {
+        buttonNo.isEnabled = isEnabled
+        buttonYes.isEnabled = isEnabled
+        buttonNo.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
+        buttonYes.backgroundColor = isEnabled ? UIColor.white : UIColor.gray
     }
-    
     
     // MARK: - IB Actions
     @IBAction private func noButtonClicked(_ sender: Any) {
