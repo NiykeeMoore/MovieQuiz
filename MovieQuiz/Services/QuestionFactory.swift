@@ -1,6 +1,6 @@
 import Foundation
 
-class QuestionFactory: QuestionFactoryProtocol {
+final class QuestionFactory: QuestionFactoryProtocol {
     private let moviesLoader: MoviesLoading
     private weak var delegate: QuestionFactoryDelegate?
     
@@ -26,8 +26,13 @@ class QuestionFactory: QuestionFactoryProtocol {
         }
     }
     
-    func setup(delegate: QuestionFactoryDelegate) {
+    private func setup(delegate: QuestionFactoryDelegate) {
         self.delegate = delegate
+    }
+    
+    private func randomRating(from rating: Float) -> Float {
+        let range: ClosedRange<Float> = (rating - 2)...(rating + 2)
+        return Float.random(in: range)
     }
     
     func requestNextQuestion() {
@@ -45,10 +50,11 @@ class QuestionFactory: QuestionFactoryProtocol {
                 print("Failed to load image")
             }
             
-            let rating = Float(movie.rating) ?? 0
+            let filmRating = Float(movie.rating) ?? 0
+            let questionRating = randomRating(from: filmRating)
             
-            let text = "Рейтинг этого фильма больше чем 7?"
-            let correctAnswer = rating > 7
+            let text = "Рейтинг этого фильма больше чем \(String(format: "%.1f", questionRating))?"
+            let correctAnswer = filmRating > questionRating
             
             let question = QuizQuestion(image: imageData,
                                         text: text,
