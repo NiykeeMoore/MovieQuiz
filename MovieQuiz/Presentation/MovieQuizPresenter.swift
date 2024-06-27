@@ -3,16 +3,16 @@ import UIKit
 final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
     private let statisticService: StatisticServiceProtocol!
     private var questionFactory: QuestionFactoryProtocol?
-    private weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewControllerProtocol?
     private var currentQuestion: QuizQuestion?
     lazy var alertPresenter = AlertPresenter()
     
     private var currentQuestionIndex: Int = 0
-    let questionsAmount: Int = 10
-    var correctAnswers: Int = 0
+    private let questionsAmount: Int = 10
+    private var correctAnswers: Int = 0
     
     init(viewController: MovieQuizViewControllerProtocol) {
-        self.viewController = viewController as? MovieQuizViewController
+        self.viewController = viewController
         
         statisticService = StatisticServiceImplementation()
         
@@ -80,6 +80,16 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
     }
     
+    func showNetworkError(message: String) {
+        viewController?.hideLoadingIndicator()
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз")
+        
+        alertPresenter.alertPresent(alertModel: model)
+    }
+    
     func didRecieveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -98,7 +108,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
     }
     
     func didFailToLoadData(with error: Error) {
-        viewController?.showNetworkError(message: error.localizedDescription)
+        showNetworkError(message: error.localizedDescription)
     }
     
     func yesButtonClicked() {

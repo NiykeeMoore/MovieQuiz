@@ -47,14 +47,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         activityIndicator.stopAnimating()
     }
     
-    func showNetworkError(message: String) {
-        hideLoadingIndicator()
-        
-        let model = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз")
-        
-        quizPresenter.alertPresenter.alertPresent(alertModel: model)
+    func presentAlert(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+        self.present(viewControllerToPresent, animated: flag, completion: completion)
     }
     
     // MARK: - Private functions
